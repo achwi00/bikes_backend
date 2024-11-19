@@ -1,5 +1,6 @@
 package com.project.ssi_wypozyczalnia.security;
 
+import com.project.ssi_wypozyczalnia.config.SecurityConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.*;
@@ -14,10 +15,16 @@ import java.io.IOException;
         filterName = "authenticationFilter"
 )
 public class AuthenticationFilter implements Filter {
-
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        
+        // Jeśli security jest wyłączone, przepuść wszystkie requesty
+        if (!SecurityConfig.isSecurityEnabled()) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
