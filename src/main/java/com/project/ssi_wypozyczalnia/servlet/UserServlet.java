@@ -3,23 +3,28 @@ package com.project.ssi_wypozyczalnia.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.ssi_wypozyczalnia.dao.UserDAO;
 import com.project.ssi_wypozyczalnia.entity.Users;
+import com.project.ssi_wypozyczalnia.security.JwtUtil;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.project.ssi_wypozyczalnia.config.DatabaseConnection;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
 @WebServlet("/api/users/*")
-public class UserServlet extends HttpServlet
-{
+public class UserServlet extends HttpServlet {
     private UserDAO userDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public void init() throws ServletException{
+    public void init() throws ServletException {
         super.init();
         Connection connection = null;
         try {
@@ -33,8 +38,7 @@ public class UserServlet extends HttpServlet
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
         if (pathInfo == null || pathInfo.split("/").length != 2) {
@@ -63,8 +67,7 @@ public class UserServlet extends HttpServlet
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
         System.out.println("Path Info: " + pathInfo);
 
@@ -98,24 +101,66 @@ public class UserServlet extends HttpServlet
         }
     }
 
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
-        // Obsługa logowania użytkownika
-        if ("/login".equals(pathInfo)) {
+        if ("/register".equals(pathInfo)) {
             try {
-                // Odczytaj dane logowania z żądania
+                Users newUser = objectMapper.readValue(req.getInputStream(), Users.class);
+
+                // Walidacja danych
+                if (newUser.getEmail() == null || newUser.getPasswordHash() == null ||
+                        newUser.getUsername() == null || newUser.getSurname() == null) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("Wszystkie pola są wymagane");
+                    return;
+                }
+
+                // Sprawdzenie czy email już istnieje
+                if (userDAO.emailExists(newUser.getEmail())) {
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    resp.getWriter().write("Użytkownik o podanym emailu już istnieje");
+                    return;
+                }
+
+                // Hashowanie hasła
+                String hashedPassword = UserDAO.hashPassword(newUser.getPasswordHash());
+                newUser.setPasswordHash(hashedPassword);
+
+                // Ustawienie domyślnej roli
+                newUser.setRole("USER");
+
+                // Dodanie użytkownika
+                userDAO.addUser(newUser);
+
+                resp.setStatus(HttpServletResponse.SC_CREATED);
+                resp.getWriter().write("Użytkownik został zarejestrowany pomyślnie");
+
+            } catch (SQLException e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("Błąd serwera: " + e.getMessage());
+            }
+        } else if ("/login".equals(pathInfo)) {
+            try {
                 Users loginRequest = objectMapper.readValue(req.getInputStream(), Users.class);
                 String email = loginRequest.getEmail();
                 String password = loginRequest.getPasswordHash();
 
-                // Sprawdź poprawność danych logowania
                 Users authenticatedUser = userDAO.authenticateUser(email, password);
                 if (authenticatedUser != null) {
+                    // Generate JWT token
+                    String token = JwtUtil.generateToken(authenticatedUser.getEmail(), authenticatedUser.getRole());
+
+                    // Create response object
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("token", token);
+                    response.put("user", authenticatedUser);
+
                     resp.setContentType("application/json");
                     resp.setCharacterEncoding("UTF-8");
-                    resp.getWriter().write(objectMapper.writeValueAsString(authenticatedUser));
+                    resp.getWriter().write(objectMapper.writeValueAsString(response));
                     resp.setStatus(HttpServletResponse.SC_OK);
                 } else {
                     resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

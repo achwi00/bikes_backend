@@ -3,7 +3,6 @@ package com.project.ssi_wypozyczalnia.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.ssi_wypozyczalnia.config.DatabaseConnection;
 import com.project.ssi_wypozyczalnia.dao.BikeDAO;
-import com.project.ssi_wypozyczalnia.dao.UserDAO;
 import com.project.ssi_wypozyczalnia.entity.Bike;
 import com.project.ssi_wypozyczalnia.entity.BikeSize;
 import com.project.ssi_wypozyczalnia.entity.BikeType;
