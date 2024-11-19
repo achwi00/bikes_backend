@@ -6,12 +6,23 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserDAO {
     private final Connection connection;
 
     public UserDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    // Metoda do hashowania hasła
+    public static String hashPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    // Metoda do sprawdzania zgodności hasła
+    public static boolean checkPassword(String password, String hashedPassword) {
+        return BCrypt.checkpw(password, hashedPassword);
     }
 
     public void addUser(Users users) throws SQLException {
@@ -55,6 +66,42 @@ public class UserDAO {
             int rowsUpdated = stmt.executeUpdate();
             return rowsUpdated > 0; // Zwraca true, jeśli user został zaktualizowany
         }
+    }
+
+    // Metoda do autoryzacji użytkownika
+    public Users authenticateUser(String email, String password) throws SQLException {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String hashedPassword = rs.getString("password_hash");
+                if (checkPassword(password, hashedPassword)) {
+                    return new Users(
+                            rs.getInt("id"),
+                            rs.getString("username"),
+                            rs.getString("surname"),
+                            rs.getString("email"),
+                            rs.getString("password_hash"),
+                            rs.getString("role")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    // Metoda do pobierania roli użytkownika
+    public String getUserRole(String email) throws SQLException {
+        String sql = "SELECT role FROM users WHERE email = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("role");
+            }
+        }
+        return null; // Zwraca null, jeśli użytkownik nie został znaleziony
     }
 
 }

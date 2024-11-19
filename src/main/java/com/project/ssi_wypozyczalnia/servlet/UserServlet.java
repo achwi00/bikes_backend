@@ -97,4 +97,37 @@ public class UserServlet extends HttpServlet
             resp.getWriter().write("Identyfikator użytkownika musi być liczbą.");
         }
     }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+
+        // Obsługa logowania użytkownika
+        if ("/login".equals(pathInfo)) {
+            try {
+                // Odczytaj dane logowania z żądania
+                Users loginRequest = objectMapper.readValue(req.getInputStream(), Users.class);
+                String email = loginRequest.getEmail();
+                String password = loginRequest.getPasswordHash();
+
+                // Sprawdź poprawność danych logowania
+                Users authenticatedUser = userDAO.authenticateUser(email, password);
+                if (authenticatedUser != null) {
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    resp.getWriter().write(objectMapper.writeValueAsString(authenticatedUser));
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    resp.getWriter().write("Nieprawidłowy email lub hasło.");
+                }
+            } catch (SQLException e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("Błąd serwera: " + e.getMessage());
+            }
+        } else {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Nieobsługiwany endpoint.");
+        }
+    }
 }
