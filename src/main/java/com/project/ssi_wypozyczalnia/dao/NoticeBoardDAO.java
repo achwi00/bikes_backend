@@ -4,6 +4,7 @@ import com.project.ssi_wypozyczalnia.entity.NoticeBoard;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +53,13 @@ public class NoticeBoardDAO {
     }
 
     private NoticeBoard mapResultSetToNoticeBoard(ResultSet rs) throws SQLException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         return new NoticeBoard(
                 rs.getInt("id"),
                 rs.getString("title"),
                 rs.getString("content"),
-                rs.getTimestamp("created_at").toLocalDateTime()
+                rs.getTimestamp("created_at").toLocalDateTime().format(formatter)
         );
     }
 }

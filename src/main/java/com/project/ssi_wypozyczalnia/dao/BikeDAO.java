@@ -19,11 +19,11 @@ public class BikeDAO {
     }
 
     public void addBike(Bike bike) throws SQLException {
-        String sql = "INSERT INTO bike (bike_name, bike_type, bike_size, available, price_per_day, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO bike (name, type, size, available, price_per_day, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, bike.getBikeName());
-            stmt.setString(2, bike.getBikeType().name());
-            stmt.setString(3, bike.getBikeSize().name());
+            stmt.setString(1, bike.getName());
+            stmt.setString(2, bike.getType().name());
+            stmt.setString(3, bike.getSize().name());
             stmt.setBoolean(4, bike.isAvailable());
             stmt.setDouble(5, bike.getPricePerDay());
             stmt.setString(6, bike.getDescription());
@@ -40,9 +40,9 @@ public class BikeDAO {
             if (rs.next()) {
                 return new Bike(
                         rs.getInt("id"),
-                        rs.getString("bike_name"),
-                        BikeType.valueOf(rs.getString("bike_type")),
-                        BikeSize.valueOf(rs.getString("bike_size")),
+                        rs.getString("name"),
+                        BikeType.valueOf(rs.getString("type")),
+                        BikeSize.valueOf(rs.getString("size")),
                         rs.getBoolean("available"),
                         rs.getDouble("price_per_day"),
                         rs.getString("description"),
@@ -67,7 +67,7 @@ public class BikeDAO {
     }
 
     public List<Bike> searchBikes(BikeSize size, BikeType type, double maxPrice) throws SQLException {
-        String sql = "SELECT * FROM bike WHERE bike_size = ? AND bike_type = ? AND price_per_day <= ?";
+        String sql = "SELECT * FROM bike WHERE size = ? AND type = ? AND price_per_day <= ?";
         List<Bike> bikes = new ArrayList<>();
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, size.name());
@@ -84,11 +84,11 @@ public class BikeDAO {
     }
 
     public boolean updateBike(Bike bike) throws SQLException {
-        String sql = "UPDATE bike SET bike_name = ?, bike_type = ?, bike_size = ?, available = ?, price_per_day = ?, description = ?, image_url = ? WHERE id = ?";
+        String sql = "UPDATE bike SET name = ?, type = ?, size = ?, available = ?, price_per_day = ?, description = ?, image_url = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, bike.getBikeName());
-            stmt.setString(2, bike.getBikeType().name());
-            stmt.setString(3, bike.getBikeSize().name());
+            stmt.setString(1, bike.getName());
+            stmt.setString(2, bike.getType().name());
+            stmt.setString(3, bike.getSize().name());
             stmt.setBoolean(4, bike.isAvailable());
             stmt.setDouble(5, bike.getPricePerDay());
             stmt.setString(6, bike.getDescription());
@@ -103,9 +103,9 @@ public class BikeDAO {
     private Bike mapResultSetToBike(ResultSet rs) throws SQLException {
         return new Bike(
                 rs.getInt("id"),
-                rs.getString("bike_name"),
-                BikeType.valueOf(rs.getString("bike_type")),
-                BikeSize.valueOf(rs.getString("bike_size")),
+                rs.getString("name"),
+                BikeType.valueOf(rs.getString("type")),
+                BikeSize.valueOf(rs.getString("size")),
                 rs.getBoolean("available"),
                 rs.getDouble("price_per_day"),
                 rs.getString("description"),

@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Bike {
     private int id;
-    private String bikeName;
-    private BikeType bikeType;
-    private BikeSize bikeSize;
+    private String name;
+    private BikeType type;
+    private BikeSize size;
     private boolean available;
     private double pricePerDay;
     private String description;
