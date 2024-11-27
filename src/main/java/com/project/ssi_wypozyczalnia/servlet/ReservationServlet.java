@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @WebServlet("/api/reservation/*")
@@ -46,7 +48,13 @@ public class ReservationServlet extends HttpServlet {
                 int bikeId = Integer.parseInt(pathInfo.split("/")[2]);
                 List<Reservation> reservations = reservationDAO.getReservationsByBikeId(bikeId);
                 objectMapper.writeValue(response.getWriter(), reservations);
-            } else {
+            }
+            else if (pathInfo != null && pathInfo.startsWith("/user/")) {
+                int userId = Integer.parseInt(pathInfo.split("/")[2]);
+                List<Reservation> reservations = reservationDAO.getReservationByUserId(userId);
+                objectMapper.writeValue(response.getWriter(), reservations);
+            }
+            else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("{\"message\": \"Invalid request path\"}");
             }
@@ -70,6 +78,52 @@ public class ReservationServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("{\"message\": \"Database error occurred\"}");
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String pathInfo = request.getPathInfo();
+
+        if (pathInfo == null || !pathInfo.matches("/\\d+")) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"message\": \"Invalid reservation ID\"}");
+            return;
+        }
+
+        try {
+            int reservationId = Integer.parseInt(pathInfo.substring(1));
+
+            // Check if reservation exists and can be deleted (2 days before start date)
+            Reservation reservation = reservationDAO.getReservationById(reservationId);
+            if (reservation == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("{\"message\": \"Reservation not found\"}");
+                return;
+            }
+
+            // Calculate days until start date
+            long daysUntilStart = ChronoUnit.DAYS.between(LocalDate.now(), reservation.getStartDate());
+            if (daysUntilStart < 2) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"message\": \"Reservation can only be cancelled at least 2 days before start date\"}");
+                return;
+            }
+
+            // Delete the reservation
+            reservationDAO.deleteReservation(reservationId);
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\": \"Database error occurred\"}");
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"message\": \"Invalid reservation ID format\"}");
         }
     }
 }

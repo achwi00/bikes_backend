@@ -27,6 +27,18 @@ public class ReservationDAO {
         }
     }
 
+    public Reservation getReservationById(int reservationId) throws SQLException {
+        String sql = "SELECT * FROM reservation WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, reservationId);
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return mapResultSetToReservation(rs);
+            }
+            return null;
+        }
+    }
+
     public List<Reservation> getReservationsByBikeId(int bikeId) throws SQLException {
         List<Reservation> reservations = new ArrayList<>();
         String sql = "SELECT id, user_id, bike_id, start_date, end_date, total_price FROM reservation WHERE bike_id = ?";
@@ -42,10 +54,12 @@ public class ReservationDAO {
         return reservations;
     }
 
-    public List<Reservation> getReservationByUser(int userId) throws SQLException {
+    public List<Reservation> getReservationByUserId(int userId) throws SQLException {
         String sql = "SELECT * FROM reservation WHERE user_id = ?";
         List<Reservation> reservationList = new ArrayList<>();
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     reservationList.add(mapResultSetToReservation(rs));
@@ -72,6 +86,15 @@ public class ReservationDAO {
         }
         return reservationDates;
     }
+
+    public void deleteReservation(int reservationId) throws SQLException {
+        String sql = "DELETE FROM reservation WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, reservationId);
+            statement.executeUpdate();
+        }
+    }
+
 
     private Reservation mapResultSetToReservation(ResultSet rs) throws SQLException {
         return new Reservation(
