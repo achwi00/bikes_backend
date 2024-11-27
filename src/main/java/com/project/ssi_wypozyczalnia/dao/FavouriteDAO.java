@@ -3,6 +3,7 @@ import com.project.ssi_wypozyczalnia.entity.Favourite;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +53,13 @@ public class FavouriteDAO {
     }
 
     private Favourite mapResultSetToFavourite(ResultSet rs) throws SQLException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         return new Favourite(
                 rs.getInt("id"),
                 rs.getInt("user_id"),
                 rs.getInt("bike_id"),
-                rs.getTimestamp("added_at").toLocalDateTime()
+                rs.getTimestamp("added_at").toLocalDateTime().format(formatter)
         );
     }
 }

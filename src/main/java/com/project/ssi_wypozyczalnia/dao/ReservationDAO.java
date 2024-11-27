@@ -4,6 +4,7 @@ import com.project.ssi_wypozyczalnia.entity.Reservation;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +27,25 @@ public class ReservationDAO {
         }
     }
 
+    public List<Reservation> getReservationsByBikeId(int bikeId) throws SQLException {
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = "SELECT id, user_id, bike_id, start_date, end_date, total_price FROM reservation WHERE bike_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, bikeId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                reservations.add(mapResultSetToReservation(rs));
+            }
+        }
+        return reservations;
+    }
+
     public List<Reservation> getReservationByUser(int userId) throws SQLException {
         String sql = "SELECT * FROM reservation WHERE user_id = ?";
         List<Reservation> reservationList = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     reservationList.add(mapResultSetToReservation(rs));

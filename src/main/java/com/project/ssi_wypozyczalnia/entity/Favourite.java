@@ -13,5 +13,5 @@ public class Favourite {
     private int id;
     private int userId;
     private int bikeId;
-    private LocalDateTime addedAt;
+    private String addedAt;
 }
