@@ -1,5 +1,7 @@
 package com.project.ssi_wypozyczalnia.servlet;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.ssi_wypozyczalnia.config.DatabaseConnection;
 import com.project.ssi_wypozyczalnia.dao.BikeDAO;
@@ -95,14 +97,49 @@ public class BikeServlet extends HttpServlet {
     }
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo != null && pathInfo.matches("/\\d+/toggle-availability")) {
+            handleToggleAvailability(req, resp);
+            return;
+        }
+
+        handleAddBike(req, resp);
+    }
+
+    private void handleToggleAvailability(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            Bike bike = objectMapper.readValue(req.getInputStream(), Bike.class); // Odczyt JSON z żądania
-            bikeDAO.addBike(bike); // Dodanie roweru przez DAO
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            resp.getWriter().write("Rower dodany ");
+            int bikeId = Integer.parseInt(req.getPathInfo().split("/")[1]);
+            boolean updated = bikeDAO.toggleAvailability(bikeId);
+
+            if (updated) {
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write("Status dostępności został zmieniony");
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("Rower o podanym ID nie istnieje");
+            }
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Nieprawidłowy format ID");
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Błąd serwera: " + e.getMessage());
+            resp.getWriter().write("Błąd podczas zmiany dostępności: " + e.getMessage());
+        }
+    }
+
+    private void handleAddBike(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            Bike bike = objectMapper.readValue(req.getInputStream(), Bike.class);
+            bikeDAO.addBike(bike);
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            resp.getWriter().write("Rower został dodany pomyślnie");
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("Błąd podczas dodawania roweru: " + e.getMessage());
+        } catch (JsonParseException | JsonMappingException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Nieprawidłowy format danych: " + e.getMessage());
         }
     }
 
@@ -132,6 +169,37 @@ public class BikeServlet extends HttpServlet {
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().write("Błąd serwera: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo == null || pathInfo.split("/").length != 2) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Nieprawidłowe ID roweru");
+            return;
+        }
+
+        try {
+            int bikeId = Integer.parseInt(pathInfo.split("/")[1]);
+            boolean deleted = bikeDAO.deleteBike(bikeId);
+
+            if (deleted) {
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write("Rower został usunięty");
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("Rower o podanym ID nie istnieje");
+            }
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Nieprawidłowy format ID");
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("Błąd podczas usuwania roweru: " + e.getMessage());
         }
     }
 }

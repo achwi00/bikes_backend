@@ -1,8 +1,8 @@
 package com.project.ssi_wypozyczalnia.dao;
 
 import com.project.ssi_wypozyczalnia.entity.Bike;
-import com.project.ssi_wypozyczalnia.entity.BikeType;
 import com.project.ssi_wypozyczalnia.entity.BikeSize;
+import com.project.ssi_wypozyczalnia.entity.BikeType;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -97,6 +97,23 @@ public class BikeDAO {
 
             int rowsUpdated = stmt.executeUpdate();
             return rowsUpdated > 0; // Zwraca true, jeśli rower został zaktualizowany
+        }
+    }
+
+    public boolean toggleAvailability(int bikeId) throws SQLException {
+        String sql = "UPDATE bike SET available = NOT available WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, bikeId);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    public boolean deleteBike(int bikeId) throws SQLException {
+        String sql = "DELETE FROM bike WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, bikeId);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         }
     }
 

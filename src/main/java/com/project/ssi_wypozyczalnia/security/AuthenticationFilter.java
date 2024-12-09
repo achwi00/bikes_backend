@@ -18,8 +18,8 @@ public class AuthenticationFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
-        // Jeśli security jest wyłączone, przepuść wszystkie requesty
+
+        // sprawdzenie, czy security jest włączone
         if (!SecurityConfig.isSecurityEnabled()) {
             chain.doFilter(request, response);
             return;
@@ -28,9 +28,12 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Allow login endpoint without authentication
-        if (httpRequest.getRequestURI().endsWith("/api/users/login") ||
-                httpRequest.getRequestURI().endsWith("/api/users/register")) {
+        // endpointy bez uwierzytelnienia
+        if (httpRequest.getRequestURI().endsWith("/api/users/login")
+                || httpRequest.getRequestURI().endsWith("/api/users/register")
+                || httpRequest.getRequestURI().endsWith("/api/bikes")
+                || httpRequest.getRequestURI().endsWith("/api/noticeboard")
+        ) {
             chain.doFilter(request, response);
             return;
         }

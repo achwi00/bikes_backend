@@ -1,4 +1,3 @@
--- Tworzenie tabel
 CREATE TABLE "user"
 (
     id            SERIAL PRIMARY KEY,
@@ -36,7 +35,7 @@ CREATE TABLE reservation
     id          SERIAL PRIMARY KEY,
     user_id     INTEGER REFERENCES "user" (id) ON DELETE CASCADE,
     bike_id     INTEGER REFERENCES bike (id) ON DELETE CASCADE,
-    start_date DATE           NOT NULL,
+    start_date  DATE           NOT NULL,
     end_date    DATE           NOT NULL,
     total_price NUMERIC(10, 2) NOT NULL,
     CONSTRAINT valid_dates CHECK (end_date >= start_date)

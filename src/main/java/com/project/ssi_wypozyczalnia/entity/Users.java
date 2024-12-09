@@ -14,6 +14,7 @@ public class Users {
     private String email;
     private String passwordHash;
     private String role;
+    private Boolean isBlocked;
 }
 
 

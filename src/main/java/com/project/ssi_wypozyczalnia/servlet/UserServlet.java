@@ -1,16 +1,16 @@
 package com.project.ssi_wypozyczalnia.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.ssi_wypozyczalnia.config.DatabaseConnection;
 import com.project.ssi_wypozyczalnia.dao.UserDAO;
 import com.project.ssi_wypozyczalnia.entity.Users;
 import com.project.ssi_wypozyczalnia.security.JwtUtil;
-
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.project.ssi_wypozyczalnia.config.DatabaseConnection;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -71,33 +71,67 @@ public class UserServlet extends HttpServlet {
         String pathInfo = req.getPathInfo();
         System.out.println("Path Info: " + pathInfo);
 
-        if (pathInfo == null || pathInfo.split("/").length != 2) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("Wymagany jest identyfikator użytkownika w ścieżce URL.");
-            return;
-        }
-
-        try {
-            int userId = Integer.parseInt(pathInfo.split("/")[1]);
-            System.out.println("user o id: " + userId);
-            // Pobierz użytkownika po ID z DAO
-            Users user = userDAO.getUserById(userId);
-
-            if (user != null) {
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write(objectMapper.writeValueAsString(user));
-                resp.setStatus(HttpServletResponse.SC_OK);
-            } else {
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write("User o id " + userId + " nie został znaleziony.");
+        if ("/me".equals(pathInfo)) {
+            // Pobierz token z nagłówka Authorization
+            String authHeader = req.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                resp.getWriter().write("Brak tokenu autoryzacyjnego.");
+                return;
             }
-        } catch (SQLException e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Błąd serwera: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("Identyfikator użytkownika musi być liczbą.");
+
+            String token = authHeader.substring(7); // Usuń "Bearer " z początku
+
+            try {
+                // Walidacja tokenu i pobranie danych użytkownika
+                Claims claims = JwtUtil.validateToken(token);
+                String email = claims.getSubject();
+
+                // Pobierz użytkownika z bazy danych
+                Users user = userDAO.getUserByEmail(email);
+                if (user != null) {
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    resp.getWriter().write(objectMapper.writeValueAsString(user));
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    resp.getWriter().write("Użytkownik nie został znaleziony.");
+                }
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                resp.getWriter().write("Nieprawidłowy token.");
+            }
+        } else {
+            // Obsługa innych ścieżek
+            if (pathInfo == null || pathInfo.split("/").length != 2) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Wymagany jest identyfikator użytkownika w ścieżce URL.");
+                return;
+            }
+
+            try {
+                int userId = Integer.parseInt(pathInfo.split("/")[1]);
+                System.out.println("user o id: " + userId);
+                // Pobierz użytkownika po ID z DAO
+                Users user = userDAO.getUserById(userId);
+
+                if (user != null) {
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    resp.getWriter().write(objectMapper.writeValueAsString(user));
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    resp.getWriter().write("User o id " + userId + " nie został znaleziony.");
+                }
+            } catch (SQLException e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("Błąd serwera: " + e.getMessage());
+            } catch (NumberFormatException e) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Identyfikator użytkownika musi być liczbą.");
+            }
         }
     }
 
@@ -150,6 +184,9 @@ public class UserServlet extends HttpServlet {
 
                 Users authenticatedUser = userDAO.authenticateUser(email, password);
                 if (authenticatedUser != null) {
+                    if (authenticatedUser.getIsBlocked()) {
+                        throw new RuntimeException("Konto zablokowane");
+                    }
                     // Generate JWT token
                     String token = JwtUtil.generateToken(authenticatedUser.getEmail(), authenticatedUser.getRole());
 
