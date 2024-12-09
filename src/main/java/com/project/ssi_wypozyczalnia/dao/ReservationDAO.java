@@ -68,24 +68,6 @@ public class ReservationDAO {
         return reservationList;
     }
 
-    public List<LocalDate[]> getReservationDateByBike(int bikeId) throws SQLException {
-        String sql = "SELECT start_date, end_date FROM reservation WHERE bike_id = ?";
-        List<LocalDate[]> reservationDates = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, bikeId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    LocalDate startDate = rs.getDate("start_date").toLocalDate();
-                    LocalDate endDate = rs.getDate("end_date").toLocalDate();
-                    reservationDates.add(new LocalDate[]{startDate, endDate});
-                }
-            }
-        }
-        return reservationDates;
-    }
-
     public void deleteReservation(int reservationId) throws SQLException {
         String sql = "DELETE FROM reservation WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {

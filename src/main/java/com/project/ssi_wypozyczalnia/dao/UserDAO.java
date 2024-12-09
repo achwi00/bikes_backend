@@ -120,19 +120,6 @@ public class UserDAO {
         return null;
     }
 
-    // Metoda do pobierania roli użytkownika
-    public String getUserRole(String email) throws SQLException {
-        String sql = "SELECT role FROM users WHERE email = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("role");
-            }
-        }
-        return null; // Zwraca null, jeśli użytkownik nie został znaleziony
-    }
-
     public boolean emailExists(String email) throws SQLException {
         String sql = "SELECT COUNT(*) FROM \"user\" WHERE email = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {

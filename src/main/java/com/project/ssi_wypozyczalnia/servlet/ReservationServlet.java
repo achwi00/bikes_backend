@@ -96,7 +96,6 @@ public class ReservationServlet extends HttpServlet {
         try {
             int reservationId = Integer.parseInt(pathInfo.substring(1));
 
-            // Check if reservation exists and can be deleted (2 days before start date)
             Reservation reservation = reservationDAO.getReservationById(reservationId);
             if (reservation == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -104,7 +103,6 @@ public class ReservationServlet extends HttpServlet {
                 return;
             }
 
-            // Calculate days until start date
             long daysUntilStart = ChronoUnit.DAYS.between(LocalDate.now(), reservation.getStartDate());
             if (daysUntilStart < 2) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -112,7 +110,6 @@ public class ReservationServlet extends HttpServlet {
                 return;
             }
 
-            // Delete the reservation
             reservationDAO.deleteReservation(reservationId);
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 

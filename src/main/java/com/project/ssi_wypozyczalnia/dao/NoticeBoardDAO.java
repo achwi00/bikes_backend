@@ -39,19 +39,6 @@ public class NoticeBoardDAO {
         return noticeBoards;
     }
 
-    public NoticeBoard getNoticeBoardById(int id) throws SQLException {
-        String sql = "SELECT * FROM notice_board WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToNoticeBoard(rs);
-                }
-            }
-        }
-        return null;
-    }
-
     private NoticeBoard mapResultSetToNoticeBoard(ResultSet rs) throws SQLException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

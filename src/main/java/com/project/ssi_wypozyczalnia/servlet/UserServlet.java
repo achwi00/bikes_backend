@@ -187,10 +187,9 @@ public class UserServlet extends HttpServlet {
                     if (authenticatedUser.getIsBlocked()) {
                         throw new RuntimeException("Konto zablokowane");
                     }
-                    // Generate JWT token
+
                     String token = JwtUtil.generateToken(authenticatedUser.getEmail(), authenticatedUser.getRole());
 
-                    // Create response object
                     Map<String, Object> response = new HashMap<>();
                     response.put("token", token);
                     response.put("user", authenticatedUser);
