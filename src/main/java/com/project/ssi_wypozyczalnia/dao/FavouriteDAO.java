@@ -1,4 +1,5 @@
 package com.project.ssi_wypozyczalnia.dao;
+
 import com.project.ssi_wypozyczalnia.entity.Favourite;
 
 import java.sql.*;

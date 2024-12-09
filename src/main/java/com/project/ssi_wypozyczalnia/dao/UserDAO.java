@@ -113,7 +113,7 @@ public class UserDAO {
                             rs.getString("password_hash"),
                             rs.getString("role"),
                             rs.getBoolean("is_blocked")
-                            );
+                    );
                 }
             }
         }
@@ -152,13 +152,13 @@ public class UserDAO {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return new Users(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("surname"),
-                    rs.getString("email"),
-                    rs.getString("password_hash"),
-                    rs.getString("role"),
-                    rs.getBoolean("is_blocked")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("surname"),
+                        rs.getString("email"),
+                        rs.getString("password_hash"),
+                        rs.getString("role"),
+                        rs.getBoolean("is_blocked")
                 );
             }
         }

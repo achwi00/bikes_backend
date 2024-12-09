@@ -22,8 +22,8 @@ import java.util.Optional;
 
 @WebServlet("/api/bikes/*")
 public class BikeServlet extends HttpServlet {
-    private BikeDAO bikeDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private BikeDAO bikeDAO;
 
     @Override
     public void init() throws ServletException {
@@ -38,6 +38,7 @@ public class BikeServlet extends HttpServlet {
         }
         this.bikeDAO = new BikeDAO(connection);
     }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
@@ -95,6 +96,7 @@ public class BikeServlet extends HttpServlet {
             resp.getWriter().write("Nieprawidłowy parametr: " + e.getMessage());
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();

@@ -20,8 +20,8 @@ import java.util.Map;
 
 @WebServlet("/api/admin/*")
 public class AdminServlet extends HttpServlet {
-    private UserDAO userDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private UserDAO userDAO;
 
     @Override
     public void init() throws ServletException {

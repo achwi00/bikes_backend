@@ -2,7 +2,7 @@ package com.project.ssi_wypozyczalnia.config;
 
 public class SecurityConfig {
     private static final String SECURITY_ENABLED_PROPERTY = "security.enabled";
-    private static Boolean securityEnabled;
+    private static final Boolean securityEnabled;
 
     // aby wylaczyc security nalezy edytowac konfiguracje uruchomieniowa
     // i dodac w vm options: -Dsecurity.enabled=false

@@ -17,8 +17,8 @@ import java.util.List;
 
 @WebServlet("/api/favourites/*")
 public class FavouriteServlet extends HttpServlet {
-    private FavouriteDAO favouriteDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private FavouriteDAO favouriteDAO;
 
     @Override
     public void init() throws ServletException {

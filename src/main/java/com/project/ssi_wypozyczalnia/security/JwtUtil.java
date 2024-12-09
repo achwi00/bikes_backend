@@ -9,8 +9,8 @@ import java.util.Date;
 
 public class JwtUtil {
 
-    private static String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     private static final long EXPIRATION_TIME = 864_000_000; // 10 days
+    private static final String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
     public static String generateToken(String email, String role) {
         return Jwts.builder()

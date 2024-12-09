@@ -20,8 +20,8 @@ import java.util.List;
 
 @WebServlet("/api/reservation/*")
 public class ReservationServlet extends HttpServlet {
-    private ReservationDAO reservationDAO;
     private final ObjectMapper objectMapper = ObjectMapperConfig.createObjectMapper();
+    private ReservationDAO reservationDAO;
 
     @Override
     public void init() throws ServletException {
@@ -48,13 +48,11 @@ public class ReservationServlet extends HttpServlet {
                 int bikeId = Integer.parseInt(pathInfo.split("/")[2]);
                 List<Reservation> reservations = reservationDAO.getReservationsByBikeId(bikeId);
                 objectMapper.writeValue(response.getWriter(), reservations);
-            }
-            else if (pathInfo != null && pathInfo.startsWith("/user/")) {
+            } else if (pathInfo != null && pathInfo.startsWith("/user/")) {
                 int userId = Integer.parseInt(pathInfo.split("/")[2]);
                 List<Reservation> reservations = reservationDAO.getReservationByUserId(userId);
                 objectMapper.writeValue(response.getWriter(), reservations);
-            }
-            else {
+            } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("{\"message\": \"Invalid request path\"}");
             }

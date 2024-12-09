@@ -17,8 +17,8 @@ import java.util.List;
 
 @WebServlet("/api/noticeboard/*")
 public class NoticeBoardServlet extends HttpServlet {
-    private NoticeBoardDAO noticeBoardDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private NoticeBoardDAO noticeBoardDAO;
 
     @Override
     public void init() throws ServletException {
@@ -35,8 +35,7 @@ public class NoticeBoardServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {   // Przeglądanie całej tablicy ogłoszeń
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {   // Przeglądanie całej tablicy ogłoszeń
         String pathInfo = req.getPathInfo();
         try {
             if (pathInfo == null || pathInfo.equals("/")) {
@@ -50,6 +49,7 @@ public class NoticeBoardServlet extends HttpServlet {
             resp.getWriter().write("Błąd serwera: " + e.getMessage());
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
